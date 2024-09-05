@@ -4,15 +4,25 @@ import Phone from "@/components/Phone";
 import { Button } from "@/components/ui/button";
 import { BASE_PRICE, PRODUCT_PRICES } from "@/config/products";
 import { cn, formatPrice } from "@/lib/utils";
-import { COLORS, FINISHES, MODELS } from "@/validators/option-validator";
+import { COLORS, MODELS } from "@/validators/option-validator";
 import { Configuration } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowRight, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import Confetti from "react-dom-confetti";
+import { createCheckoutSession } from "./actions";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
-  const [showConfetti, setShowConfetti] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+  const { id } = configuration;
+  const { user } = useKindeBrowserClient();
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+
+  const [showConfetti, setShowConfetti] = useState<boolean>(false);
   useEffect(() => setShowConfetti(true));
 
   const { color, model, finish, material } = configuration;
@@ -29,10 +39,30 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
     totalPrice += PRODUCT_PRICES.material.polycarbonate;
   if (finish === "textured") totalPrice += PRODUCT_PRICES.finish.premium;
 
-  const {  } = useMutation({
+  const { mutate: createPaymentSession } = useMutation({
     mutationKey: ["get-checkout-session"],
-    mutationFn: 
-  })
+    mutationFn: createCheckoutSession,
+    onSuccess: ({ url }) => {
+      if (url) router.push(url);
+      else throw new Error("Failed to create checkout session");
+    },
+    onError: () => {
+      toast({
+        title: "Failed to create checkout session",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCheckout = () => {
+    if (user) {
+      createPaymentSession({ configId: id });
+    } else {
+      localStorage.setItem("configurationId", id);
+      setIsLoginModalOpen(true);
+    }
+  };
 
   return (
     <>
@@ -125,9 +155,10 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
 
             <div className="mt-8 flex justify-end pb-12">
               <Button
-                isLoading
-                loadingText="Loading"
                 className="px-4 sm:px-6 lg:px-8"
+                onClick={() =>
+                  createPaymentSession({ configId: configuration.id })
+                }
               >
                 Checkout <ArrowRight className="h-4 w-4 ml-1.5 inline" />
               </Button>
