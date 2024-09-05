@@ -21,10 +21,15 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
   const { toast } = useToast();
   const { id } = configuration;
   const { user } = useKindeBrowserClient();
+  console.log(user, "CLIENT first change to kindeauth");
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
 
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
-  useEffect(() => setShowConfetti(true));
+
+  useEffect(() => {
+    console.log(user, "CLIENT first change to kindeauth");
+    setShowConfetti(true);
+  });
 
   const { color, model, finish, material } = configuration;
   const tw = COLORS.find(
@@ -56,10 +61,14 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
     },
   });
 
+  console.log("#################################CLIENT");
+  console.log(user, "CLIENT");
+
   const handleCheckout = () => {
     if (user) {
       createPaymentSession({ configId: id });
     } else {
+      console.log("elseeeeeee");
       localStorage.setItem("configurationId", id);
       setIsLoginModalOpen(true);
     }

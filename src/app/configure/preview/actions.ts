@@ -11,6 +11,9 @@ export const createCheckoutSession = async ({
 }: {
   configId: string;
 }) => {
+  console.log("#################################SERVER");
+  console.log("#################################SERVER", configId);
+
   const configuration = await db.configuration.findUnique({
     where: { id: configId },
   });
@@ -41,7 +44,11 @@ export const createCheckoutSession = async ({
   const existingOrder = await db.order.findFirst({
     where: { userId: user.id, configurationId: configuration.id },
   });
-
+  console.log("#################################SERVER");
+  console.log("#################################SERVER");
+  console.log("#################################SERVER");
+  console.log("#################################SERVER");
+  console.log("#################################SERVER");
   console.log(user.id, configuration.id);
 
   if (existingOrder) {
