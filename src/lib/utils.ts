@@ -42,5 +42,6 @@ export function constructMetadata({
       creator: "@casecobra",
     },
     icons,
+    metadataBase: new URL("https://next-shop-ashy-nine.vercel.app/"),
   };
 }
